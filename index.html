@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>関係図メーカー＆マスター｜割合の図がかける・わかる</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="app-header">
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-icon" aria-hidden="true">
+          <svg viewBox="0 0 36 36" width="32" height="32">
+            <rect x="2" y="11" width="12" height="14" rx="3" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+            <rect x="22" y="11" width="12" height="14" rx="3" fill="#fce7f3" stroke="#db2777" stroke-width="2"/>
+            <path d="M14.5 18 H20.5" stroke="#334155" stroke-width="2" stroke-linecap="round"/>
+            <path d="M18.5 15 L21.5 18 L18.5 21" fill="none" stroke="#334155" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <text x="18" y="9" text-anchor="middle" font-size="7" font-weight="bold" fill="#0369a1">×□</text>
+          </svg>
+        </div>
+        <div>
+          <h1>関係図メーカー＆マスター</h1>
+          <p class="subtitle">算数「割合」の関係図・線分図をかんたん作成＆組み立て練習</p>
+        </div>
+      </div>
+
+      <nav class="main-nav" aria-label="モード切り替え">
+        <button type="button" class="nav-btn active" data-view="editor">
+          <span class="nav-icon">✏️</span> 関係図をつくる
+        </button>
+        <button type="button" class="nav-btn" data-view="practice">
+          <span class="nav-icon">🧩</span> 文章題から組み立てる
+        </button>
+        <button type="button" class="nav-btn" data-view="saved">
+          <span class="nav-icon">📁</span> 保存した図 <span id="saved-count-badge" class="badge">0</span>
+        </button>
+        <button type="button" id="btn-open-guide" class="nav-btn nav-help" title="関係図のかき方のコツ">
+          <span>💡</span> コツを見る
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="app-main">
+    <!-- ==================== VIEW 1: EDITOR ==================== -->
+    <section id="view-editor" class="view active" aria-label="関係図エディタ">
+      <div class="editor-layout">
+        <!-- Left Panel: Controls -->
+        <aside class="controls-panel">
+          <div class="panel-card">
+            <h2 class="panel-title">1. パターンをえらぶ</h2>
+            <div class="type-grid" role="group" aria-label="求めるもののパターン">
+              <button type="button" class="type-btn active" data-pattern="ratio">
+                <strong>割合（□倍）</strong>
+                <span>くらべる ÷ もと</span>
+              </button>
+              <button type="button" class="type-btn" data-pattern="compared">
+                <strong>くらべる量（右）</strong>
+                <span>もと × 割合</span>
+              </button>
+              <button type="button" class="type-btn" data-pattern="base">
+                <strong>もとにする量（左）</strong>
+                <span>くらべる ÷ 割合</span>
+              </button>
+              <button type="button" class="type-btn" data-pattern="custom">
+                <strong>じゆう編集</strong>
+                <span>すべて自由入力</span>
+              </button>
+            </div>
+
+            <div class="template-row">
+              <label for="preset-select">れい（テンプレート）:</label>
+              <select id="preset-select">
+                <option value="">-- テンプレートから読みこむ --</option>
+                <option value="club-ratio">部活動の希望者（割合＞1）</option>
+                <option value="concert-ratio">発表会の人数（割合＜1）</option>
+                <option value="library-compared">図書館の本（くらべる量）</option>
+                <option value="price-up">野菜の値上がり（割合＞1のくらべる量）</option>
+                <option value="yesterday-base">きのうの人数（もとにする量）</option>
+                <option value="sale-base">値下げ前のねだん（割合＜1のもと）</option>
+                <option value="compare-two">【2段比較】クラブAとクラブB</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Diagram 1 Inputs -->
+          <div class="panel-card">
+            <div class="panel-header-row">
+              <h2 class="panel-title">2. 図の内容を入力</h2>
+              <button type="button" id="btn-swap-sides" class="mini-btn" title="左右の箱を入れかえる">⇄ 左右いれかえ</button>
+            </div>
+
+            <div class="diagram-input-group">
+              <!-- Base (Left) -->
+              <div class="input-box box-base" data-focus-target="base">
+                <div class="box-header">
+                  <span class="role-dot dot-base"></span>
+                  <strong>もとにする量（左・1とみる量）</strong>
+                  <label class="inline-check">
+                    <input type="checkbox" id="in-base-unknown" /> □にする
+                  </label>
+                </div>
+                <div class="field-row">
+                  <div class="field">
+                    <label for="in-base-label">なまえ</label>
+                    <input type="text" id="in-base-label" value="全体" placeholder="例：全体、去年、定員" maxlength="20" />
+                  </div>
+                  <div class="field field-num">
+                    <label for="in-base-val">数量</label>
+                    <input type="text" id="in-base-val" value="200" placeholder="例：200" maxlength="12" />
+                  </div>
+                  <div class="field field-unit">
+                    <label for="in-base-unit">単位</label>
+                    <input type="text" id="in-base-unit" value="人" placeholder="人" maxlength="8" />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Ratio (Arrow) -->
+              <div class="input-box box-ratio" data-focus-target="ratio">
+                <div class="box-header">
+                  <span class="role-dot dot-ratio"></span>
+                  <strong>割合（矢印の上）</strong>
+                  <label class="inline-check">
+                    <input type="checkbox" id="in-ratio-unknown" /> □にする
+                  </label>
+                </div>
+                <div class="field-row">
+                  <div class="field field-num">
+                    <label for="in-ratio-val">割合の数</label>
+                    <input type="text" id="in-ratio-val" value="0.35" placeholder="例：0.35" maxlength="12" />
+                  </div>
+                  <div class="field">
+                    <label for="in-ratio-style">表示のしかた</label>
+                    <select id="in-ratio-style">
+                      <option value="bai">〇〇倍</option>
+                      <option value="mul-bai">× 〇〇倍</option>
+                      <option value="mul">× 〇〇</option>
+                      <option value="percent">〇〇％</option>
+                      <option value="raw">文字そのまま</option>
+                    </select>
+                  </div>
+                </div>
+                <label class="sub-check">
+                  <input type="checkbox" id="opt-return-arrow" /> 下に「もどす点線矢印（÷割合）」を表示
+                </label>
+              </div>
+
+              <!-- Compared (Right) -->
+              <div class="input-box box-compared" data-focus-target="compared">
+                <div class="box-header">
+                  <span class="role-dot dot-compared"></span>
+                  <strong>くらべる量（右・矢印の先）</strong>
+                  <label class="inline-check">
+                    <input type="checkbox" id="in-compared-unknown" /> □にする
+                  </label>
+                </div>
+                <div class="field-row">
+                  <div class="field">
+                    <label for="in-compared-label">なまえ</label>
+                    <input type="text" id="in-compared-label" value="希望者" placeholder="例：希望者、今年" maxlength="20" />
+                  </div>
+                  <div class="field field-num">
+                    <label for="in-compared-val">数量</label>
+                    <input type="text" id="in-compared-val" value="70" placeholder="例：70" maxlength="12" />
+                  </div>
+                  <div class="field field-unit">
+                    <label for="in-compared-unit">単位</label>
+                    <input type="text" id="in-compared-unit" value="人" placeholder="人" maxlength="8" />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Quick Unit Chips -->
+              <div class="unit-chips" aria-label="よく使う単位をまとめて設定">
+                <span class="chips-label">単位セット:</span>
+                <button type="button" class="chip-btn" data-unit="人">人</button>
+                <button type="button" class="chip-btn" data-unit="円">円</button>
+                <button type="button" class="chip-btn" data-unit="さつ">さつ</button>
+                <button type="button" class="chip-btn" data-unit="個">個</button>
+                <button type="button" class="chip-btn" data-unit="m">m</button>
+                <button type="button" class="chip-btn" data-unit="L">L</button>
+                <button type="button" class="chip-btn" data-unit="g">g</button>
+                <button type="button" class="chip-btn" data-unit="">なし</button>
+              </div>
+            </div>
+
+            <!-- Second Diagram Toggle -->
+            <div class="compare-toggle-wrap">
+              <label class="toggle-switch-label">
+                <input type="checkbox" id="opt-second-diagram" />
+                <span>2つ目の関係図を並べる（比較用）</span>
+              </label>
+            </div>
+
+            <div id="second-diagram-fields" class="second-diagram-fields hidden">
+              <div class="sub-diagram-badge">2つ目の図</div>
+              <div class="field-row">
+                <div class="field">
+                  <label for="in2-title">見出し</label>
+                  <input type="text" id="in2-title" value="木きん" placeholder="例：Bグループ" maxlength="16" />
+                </div>
+                <div class="field">
+                  <label for="in2-base-label">左なまえ</label>
+                  <input type="text" id="in2-base-label" value="定員" maxlength="16" />
+                </div>
+                <div class="field field-num">
+                  <label for="in2-base-val">左数量</label>
+                  <input type="text" id="in2-base-val" value="8" maxlength="10" />
+                </div>
+              </div>
+              <div class="field-row">
+                <div class="field field-num">
+                  <label for="in2-ratio-val">割合</label>
+                  <input type="text" id="in2-ratio-val" value="□" maxlength="10" />
+                </div>
+                <div class="field">
+                  <label for="in2-compared-label">右なまえ</label>
+                  <input type="text" id="in2-compared-label" value="希望者" maxlength="16" />
+                </div>
+                <div class="field field-num">
+                  <label for="in2-compared-val">右数量</label>
+                  <input type="text" id="in2-compared-val" value="10" maxlength="10" />
+                </div>
+              </div>
+              <div class="field-row">
+                <div class="field">
+                  <label for="in1-title">1つ目の見出し（比較時）</label>
+                  <input type="text" id="in1-title" value="オルガン" placeholder="例：Aグループ" maxlength="16" />
+                </div>
+                <div class="field field-unit">
+                  <label for="in2-unit">単位</label>
+                  <input type="text" id="in2-unit" value="人" maxlength="8" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Display & Problem Note Options -->
+          <div class="panel-card">
+            <h2 class="panel-title">3. 補助図・見た目・問題文</h2>
+
+            <div class="field">
+              <label for="in-problem-text">問題文メモ（任意・図の上に表示）</label>
+              <textarea id="in-problem-text" rows="2" placeholder="例：全体200人のうち、希望者は70人でした。希望者は全体の何倍ですか。"></textarea>
+            </div>
+
+            <div class="options-grid">
+              <div class="field">
+                <label for="opt-aux-diagram">いっしょに表示する図</label>
+                <select id="opt-aux-diagram">
+                  <option value="none">関係図のみ</option>
+                  <option value="segment" selected>＋ 線分図（アーチ型）</option>
+                  <option value="tape">＋ テープ図（倍数直線）</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="opt-theme">カラーテーマ</label>
+                <select id="opt-theme">
+                  <option value="textbook">教科書カラー（緑×ピンク）</option>
+                  <option value="ud">くっきりUDカラー</option>
+                  <option value="mono">プリント用モノクロ</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="checkbox-stack">
+              <label><input type="checkbox" id="opt-show-roles" checked /> 「もとにする量」「くらべる量」「割合」タグを表示</label>
+              <label><input type="checkbox" id="opt-show-formula" checked /> 下に「式と答え」を表示</label>
+              <label><input type="checkbox" id="opt-hide-answer" /> プリント用に「答え」をかくす（練習・テスト用）</label>
+              <label><input type="checkbox" id="opt-transparent-bg" /> 画像書き出し時に背景を透明にする</label>
+            </div>
+          </div>
+        </aside>
+
+        <!-- Right Panel: Live Preview & Export -->
+        <section class="preview-panel" aria-label="関係図プレビュー">
+          <div class="preview-toolbar">
+            <div class="toolbar-group">
+              <button type="button" id="btn-export-png" class="btn-primary">🖼️ PNGで保存</button>
+              <button type="button" id="btn-copy-img" class="btn-secondary">📋 画像をコピー</button>
+              <button type="button" id="btn-export-svg" class="btn-secondary">📐 SVG保存</button>
+              <button type="button" id="btn-print" class="btn-secondary">🖨️ 印刷</button>
+            </div>
+            <div class="toolbar-group">
+              <button type="button" id="btn-save-local" class="btn-accent">💾 この図を保存</button>
+              <button type="button" id="btn-make-quiz" class="btn-outline" title="今作った図を使って組み立て練習をします">🧩 クイズにする</button>
+            </div>
+          </div>
+
+          <div id="preview-sheet" class="preview-sheet">
+            <div id="preview-problem-box" class="preview-problem-box hidden"></div>
+            <div id="diagram-svg-host" class="diagram-svg-host"></div>
+            <div id="formula-card" class="formula-card"></div>
+          </div>
+
+          <div class="preview-hint-bar">
+            <span>💡 ヒント: 図の「緑の箱」「矢印」「ピンクの箱」をクリックすると、左の入力欄にジャンプします。</span>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <!-- ==================== VIEW 2: PRACTICE ==================== -->
+    <section id="view-practice" class="view" aria-label="関係図の組み立て練習">
+      <div class="practice-container">
+        <div class="practice-topbar">
+          <div class="category-pills" role="group" aria-label="問題のしゅるい">
+            <button type="button" class="pill-btn active" data-cat="all">すべて</button>
+            <button type="button" class="pill-btn" data-cat="ratio">① 割合を求める</button>
+            <button type="button" class="pill-btn" data-cat="compared">② くらべる量</button>
+            <button type="button" class="pill-btn" data-cat="base">③ もとにする量</button>
+            <button type="button" class="pill-btn" data-cat="tricky">④ 文章ひっかけ</button>
+            <button type="button" class="pill-btn pill-gen" data-cat="generated">🎲 自動生成（無限）</button>
+          </div>
+          <div class="stats-bar">
+            <span class="stat-pill">正解数: <strong id="stat-solved">0</strong></span>
+            <span class="stat-pill">れんぞく: <strong id="stat-streak">0</strong> 🔥</span>
+          </div>
+        </div>
+
+        <div class="practice-card">
+          <div class="problem-header">
+            <span id="p-badge" class="problem-badge">レベル1・割合を求める</span>
+            <span id="p-counter" class="problem-counter">問題 1 / 12</span>
+            <div class="problem-header-actions">
+              <button type="button" id="btn-p-hint" class="mini-btn">💡 ヒント（「〜の」に注目）</button>
+              <button type="button" id="btn-p-skip" class="mini-btn">次の問題 ⏭️</button>
+            </div>
+          </div>
+
+          <!-- Word problem text -->
+          <div id="p-question-box" class="p-question-box"></div>
+          <div id="p-hint-box" class="p-hint-box hidden"></div>
+
+          <!-- Step 1: Build the 関係図 -->
+          <div class="practice-step">
+            <div class="step-heading">
+              <span class="step-num">ステップ 1</span>
+              <h3>下のカードを動かして（またはタップして）、正しい関係図を組み立てよう</h3>
+              <button type="button" id="btn-p-swap" class="mini-btn">⇄ 左右をいれかえる</button>
+              <button type="button" id="btn-p-reset" class="mini-btn">やりなおす</button>
+            </div>
+
+            <!-- Interactive Relation Diagram Drop Zones -->
+            <div class="builder-board" id="builder-board">
+              <!-- Base Slot (Left) -->
+              <div class="builder-col">
+                <div class="role-tag tag-base">もとにする量（1とみる量）</div>
+                <div class="drop-slot slot-box slot-base" data-slot="baseLabel" tabindex="0">
+                  <span class="slot-placeholder">左の箱のなまえ</span>
+                </div>
+                <div class="drop-slot slot-val" data-slot="baseVal" tabindex="0">
+                  <span class="slot-placeholder">数量（または□）</span>
+                </div>
+              </div>
+
+              <!-- Arrow & Ratio Slot -->
+              <div class="builder-arrow-col">
+                <div class="role-tag tag-ratio">割合（何倍）</div>
+                <div class="drop-slot slot-ratio" data-slot="ratioVal" tabindex="0">
+                  <span class="slot-placeholder">何倍？（または□倍）</span>
+                </div>
+                <div class="builder-arrow-graphic" aria-hidden="true">
+                  <div class="arrow-shaft"></div>
+                  <div class="arrow-head"></div>
+                </div>
+              </div>
+
+              <!-- Compared Slot (Right) -->
+              <div class="builder-col">
+                <div class="role-tag tag-compared">くらべる量</div>
+                <div class="drop-slot slot-box slot-compared" data-slot="comparedLabel" tabindex="0">
+                  <span class="slot-placeholder">右の箱のなまえ</span>
+                </div>
+                <div class="drop-slot slot-val" data-slot="comparedVal" tabindex="0">
+                  <span class="slot-placeholder">数量（または□）</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Draggable / Tappable Card Tray -->
+            <div class="tray-area">
+              <div class="tray-label">カードトレイ（ドラッグ＆ドロップ、または「空らんをタップ → カードをタップ」）:</div>
+              <div id="p-card-tray" class="card-tray"></div>
+            </div>
+
+            <div class="step-actions">
+              <button type="button" id="btn-check-diagram" class="btn-primary btn-lg">関係図をチェックする！</button>
+            </div>
+            <div id="p-diagram-feedback" class="feedback-box hidden"></div>
+          </div>
+
+          <!-- Step 2: Equation & Answer (Unlocked after Step 1) -->
+          <div id="practice-step-2" class="practice-step step-locked">
+            <div class="step-heading">
+              <span class="step-num">ステップ 2</span>
+              <h3>関係図と線分図を見て、式と答えを求めよう</h3>
+            </div>
+
+            <div id="p-aux-preview" class="p-aux-preview"></div>
+
+            <div class="equation-builder">
+              <div class="eq-row">
+                <label for="in-p-eq">式：</label>
+                <input type="text" id="in-p-eq" placeholder="例: 24 ÷ 1.6" autocomplete="off" />
+                <div class="eq-quick-btns" id="eq-quick-btns"></div>
+              </div>
+              <div class="eq-row">
+                <label for="in-p-ans">答え：</label>
+                <input type="text" id="in-p-ans" placeholder="数値" autocomplete="off" />
+                <span id="p-ans-unit" class="ans-unit"></span>
+                <button type="button" id="btn-check-answer" class="btn-accent">答え合わせ！</button>
+              </div>
+            </div>
+            <div id="p-answer-feedback" class="feedback-box hidden"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== VIEW 3: SAVED ==================== -->
+    <section id="view-saved" class="view" aria-label="保存した関係図">
+      <div class="saved-container">
+        <div class="saved-header">
+          <div>
+            <h2>保存した関係図ライブラリ</h2>
+            <p class="muted">ブラウザ（この端末）に保存されます。クリックするとエディタで開いて再編集・印刷できます。</p>
+          </div>
+          <div class="saved-actions">
+            <button type="button" id="btn-export-json" class="btn-secondary">📤 データを書き出す(JSON)</button>
+            <label class="btn-secondary file-label">
+              📥 読みこむ(JSON)
+              <input type="file" id="in-import-json" accept=".json" hidden />
+            </label>
+          </div>
+        </div>
+        <div id="saved-grid" class="saved-grid"></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Guide Modal -->
+  <div id="guide-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="guide-title">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="guide-title">💡 関係図のかき方 3つのポイント</h2>
+        <button type="button" id="btn-close-guide" class="close-btn" aria-label="閉じる">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="guide-card guide-green">
+          <h3>ポイント①：「〜の」の前が『もとにする量』（左の箱）</h3>
+          <p>「<strong>きのうの</strong> 1.6倍」「<strong>定員の</strong> 何倍」「<strong>全体の</strong> 0.35倍」のように、<strong>「〇〇の △倍」の〇〇が左の箱（1とみる量）</strong>になります。</p>
+        </div>
+        <div class="guide-card guide-blue">
+          <h3>ポイント②：矢印の向きはいつでも「もと → くらべる」</h3>
+          <p>右向き矢印の上に <strong>「× 割合（〇倍）」</strong> を書きます。<br/>
+            ・<strong>くらべる量 ＝ もとにする量 × 割合</strong><br/>
+            ・<strong>割合 ＝ くらべる量 ÷ もとにする量</strong><br/>
+            ・<strong>もとにする量 ＝ くらべる量 ÷ 割合</strong></p>
+        </div>
+        <div class="guide-card guide-pink">
+          <h3>ポイント③：わからない場所を「□」にする</h3>
+          <p>「何倍ですか」なら矢印の上を <code>□倍</code> に、「何人でしたか」なら聞かれている箱の下を <code>□人</code> にすると、式がひと目でわかります！</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast notification -->
+  <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+
+  <script src="js/diagram.js"></script>
+  <script src="js/problems.js"></script>
+  <script src="js/practice.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

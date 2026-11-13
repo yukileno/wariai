@@ -1,0 +1,15 @@
+# 教材・テスト原本画像などの機密・著作物ファイルは絶対にコミットしない
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.webp
+*.pdf
+*テスト*
+*原本*
+*kyoukasho*
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+.vscode/
