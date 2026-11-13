@@ -293,8 +293,16 @@
     if (cd) cd.textContent = Math.max(0, Math.ceil(state.remainingMs / 1000));
   }
 
+  function showHud() {
+    updateHud();
+    el('quiz-hud').classList.remove('hidden');
+  }
+
   function startSession() {
-    state.remainingMs = QUIZ_INTERVAL_MS;
+    // 失敗してやり直しても残り時間はリセットしない（0以下のときのみ20秒に戻す）
+    if (!Number.isFinite(state.remainingMs) || state.remainingMs <= 0) {
+      state.remainingMs = QUIZ_INTERVAL_MS;
+    }
     state.lastTick = Date.now();
     updateHud();
     el('quiz-hud').classList.remove('hidden');
@@ -699,6 +707,7 @@
   }
 
   global.BirdQuiz = {
+    showHud,
     startSession,
     stopSession,
     openQuiz, // デバッグ・確認用にも利用可

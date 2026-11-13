@@ -20,6 +20,7 @@ game.PlayScreen = me.ScreenObject.extend({
         game.data.newHiscore = false;
         game.data.quizPaused = false;
         game.data.resuming = false;
+        if (window.BirdQuiz) window.BirdQuiz.showHud();
 
         me.game.world.addChild(new BackgroundLayer('bg', 1));
 
