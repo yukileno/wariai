@@ -1,183 +1,14 @@
 /**
- * オリジナル例題テンプレート・練習問題バンク・ランダム問題ジェネレーター
+ * 練習問題バンク＆ランダム問題ジェネレーター
  */
 (function (global) {
   'use strict';
 
-  const PRESETS = {
-    'club-ratio': {
-      pattern: 'ratio',
-      problemText: 'ダンスクラブの定員は10人ですが、希望者は15人いました。希望者は定員の何倍ですか。',
-      enableSecond: false,
-      auxDiagram: 'tape',
-      primary: {
-        title: '',
-        baseLabel: '定員',
-        baseVal: '10',
-        baseUnit: '人',
-        baseUnknown: false,
-        ratioVal: '□',
-        ratioUnknown: true,
-        ratioStyle: 'bai',
-        showReturnArrow: false,
-        comparedLabel: '希望者',
-        comparedVal: '15',
-        comparedUnit: '人',
-        comparedUnknown: false,
-      },
-    },
-    'concert-ratio': {
-      pattern: 'ratio',
-      problemText: '4年生80人のうち、遠足のバスでAコースをえらんだ人は32人でした。全体の人数をもとにしたときの、Aコースの人数の割合を求めましょう。',
-      enableSecond: false,
-      auxDiagram: 'segment',
-      primary: {
-        title: '',
-        baseLabel: '全体',
-        baseVal: '80',
-        baseUnit: '人',
-        baseUnknown: false,
-        ratioVal: '□',
-        ratioUnknown: true,
-        ratioStyle: 'bai',
-        showReturnArrow: false,
-        comparedLabel: 'Aコース',
-        comparedVal: '32',
-        comparedUnit: '人',
-        comparedUnknown: false,
-      },
-    },
-    'library-compared': {
-      pattern: 'compared',
-      problemText: '学校全体で今週かりられた本は300さつで、そのうち4年生がかりたのは全体の0.25倍でした。4年生がかりた本は何さつでしたか。',
-      enableSecond: false,
-      auxDiagram: 'segment',
-      primary: {
-        title: '',
-        baseLabel: '全体',
-        baseVal: '300',
-        baseUnit: 'さつ',
-        baseUnknown: false,
-        ratioVal: '0.25',
-        ratioUnknown: false,
-        ratioStyle: 'bai',
-        showReturnArrow: false,
-        comparedLabel: '4年生',
-        comparedVal: '□',
-        comparedUnit: 'さつ',
-        comparedUnknown: true,
-      },
-    },
-    'price-up': {
-      pattern: 'compared',
-      problemText: '先月200円だったノートが、今月は先月の1.15倍にね上がりしました。今月のねだんは何円ですか。',
-      enableSecond: false,
-      auxDiagram: 'segment',
-      primary: {
-        title: '',
-        baseLabel: '先月',
-        baseVal: '200',
-        baseUnit: '円',
-        baseUnknown: false,
-        ratioVal: '1.15',
-        ratioUnknown: false,
-        ratioStyle: 'bai',
-        showReturnArrow: false,
-        comparedLabel: '今月',
-        comparedVal: '□',
-        comparedUnit: '円',
-        comparedUnknown: true,
-      },
-    },
-    'yesterday-base': {
-      pattern: 'base',
-      problemText: '今日、体育館で遊んだ児童は、きのうの1.4倍にあたる35人でした。きのう遊んだ児童は何人でしたか。',
-      enableSecond: false,
-      auxDiagram: 'segment',
-      primary: {
-        title: '',
-        baseLabel: 'きのう',
-        baseVal: '□',
-        baseUnit: '人',
-        baseUnknown: true,
-        ratioVal: '1.4',
-        ratioUnknown: false,
-        ratioStyle: 'bai',
-        showReturnArrow: true,
-        comparedLabel: '今日',
-        comparedVal: '35',
-        comparedUnit: '人',
-        comparedUnknown: false,
-      },
-    },
-    'sale-base': {
-      pattern: 'base',
-      problemText: 'あるくつが、もとのねだんの0.8倍に値下げされて、3200円で売られています。もとのねだんは何円でしたか。',
-      enableSecond: false,
-      auxDiagram: 'segment',
-      primary: {
-        title: '',
-        baseLabel: 'もとのねだん',
-        baseVal: '□',
-        baseUnit: '円',
-        baseUnknown: true,
-        ratioVal: '0.8',
-        ratioUnknown: false,
-        ratioStyle: 'bai',
-        showReturnArrow: true,
-        comparedLabel: 'セール価格',
-        comparedVal: '3200',
-        comparedUnit: '円',
-        comparedUnknown: false,
-      },
-    },
-    'compare-two': {
-      pattern: 'ratio',
-      problemText: '卓球クラブと料理クラブでは、それぞれ定員の何倍の希望者がいますか。',
-      enableSecond: true,
-      auxDiagram: 'tape',
-      primary: {
-        title: '卓球クラブ',
-        baseLabel: '定員',
-        baseVal: '8',
-        baseUnit: '人',
-        baseUnknown: false,
-        ratioVal: '□',
-        ratioUnknown: true,
-        ratioStyle: 'bai',
-        showReturnArrow: false,
-        comparedLabel: '希望者',
-        comparedVal: '12',
-        comparedUnit: '人',
-        comparedUnknown: false,
-      },
-      second: {
-        title: '料理クラブ',
-        baseLabel: '定員',
-        baseVal: '10',
-        baseUnit: '人',
-        baseUnknown: false,
-        ratioVal: '□',
-        ratioUnknown: true,
-        ratioStyle: 'bai',
-        showReturnArrow: false,
-        comparedLabel: '希望者',
-        comparedVal: '14',
-        comparedUnit: '人',
-        comparedUnknown: false,
-      },
-    },
-  };
-
-  /**
-   * 練習問題リスト（オリジナル問題12問）
-   * segments: 文章中のハイライト部分
-   */
   const PRACTICE_PROBLEMS = [
     {
       id: 'p1',
       category: 'ratio',
-      levelLabel: 'レベル1・割合を求める',
+      levelLabel: '① 割合を求める',
       textParts: [
         { t: 'バドミントンクラブの' },
         { t: '定員は8人', role: 'base' },
@@ -187,7 +18,7 @@
         { t: '定員の何倍', role: 'ratio' },
         { t: 'ですか。' },
       ],
-      hint: '「定員の 何倍ですか」と聞かれているね。「〜の」の前にある「定員」がもとにする量（左の箱）だよ！',
+      hint: '「定員の 何倍」→「〜の」の前（定員）がもとにする量（左）',
       baseLabel: '定員',
       baseVal: '8人',
       comparedLabel: '希望者',
@@ -204,7 +35,7 @@
     {
       id: 'p2',
       category: 'ratio',
-      levelLabel: 'レベル1・割合を求める',
+      levelLabel: '① 割合を求める',
       textParts: [
         { t: '5年生' },
         { t: '全体120人', role: 'base' },
@@ -214,7 +45,7 @@
         { t: '全体の何倍（割合）', role: 'ratio' },
         { t: 'ですか。' },
       ],
-      hint: '「全体の 何倍」なので、「全体」がもとにする量（左）、「参加した人数」がくらべる量（右）になるよ。',
+      hint: '「全体の 何倍」→「全体」がもとにする量（左）',
       baseLabel: '全体',
       baseVal: '120人',
       comparedLabel: '参加した人',
@@ -231,7 +62,7 @@
     {
       id: 'p3',
       category: 'ratio',
-      levelLabel: 'レベル1・割合を求める',
+      levelLabel: '① 割合を求める',
       textParts: [
         { t: '花だんに植えたチューリップ' },
         { t: '50本', role: 'base' },
@@ -241,7 +72,7 @@
         { t: '全体の何倍（割合）', role: 'ratio' },
         { t: 'ですか。' },
       ],
-      hint: '「全体の」がついている「全体（50本）」がもとにする量だよ。48÷120のように「くらべる ÷ もと」で考えよう！',
+      hint: '「全体の 何倍」→「全体（50本）」がもとにする量（左）',
       baseLabel: '全体',
       baseVal: '50本',
       comparedLabel: '赤い花',
@@ -258,7 +89,7 @@
     {
       id: 'p4',
       category: 'compared',
-      levelLabel: 'レベル2・くらべる量を求める',
+      levelLabel: '② くらべる量',
       textParts: [
         { t: '今週、学校全体で集まったペットボトルは' },
         { t: '400本', role: 'base' },
@@ -268,7 +99,7 @@
         { t: '5年生が集めた本数', role: 'compared' },
         { t: 'は何本ですか。' },
       ],
-      hint: '「全体の 0.3倍」だから、「全体（400本）」がもとにする量（左）！わからない「5年生」が □本（右）だよ。',
+      hint: '「全体の 0.3倍」→「全体（400本）」がもとにする量（左）',
       baseLabel: '全体',
       baseVal: '400本',
       comparedLabel: '5年生',
@@ -285,7 +116,7 @@
     {
       id: 'p5',
       category: 'compared',
-      levelLabel: 'レベル2・くらべる量を求める',
+      levelLabel: '② くらべる量',
       textParts: [
         { t: '去年' },
         { t: '180円', role: 'base' },
@@ -295,7 +126,7 @@
         { t: 'ことしのねだん', role: 'compared' },
         { t: 'は何円ですか。' },
       ],
-      hint: '「去年の 1.2倍」と書いてあるので、「去年（180円）」がもとにする量（左）になるよ。',
+      hint: '「去年の 1.2倍」→「去年（180円）」がもとにする量（左）',
       baseLabel: '去年',
       baseVal: '180円',
       comparedLabel: 'ことし',
@@ -312,7 +143,7 @@
     {
       id: 'p6',
       category: 'compared',
-      levelLabel: 'レベル2・くらべる量を求める',
+      levelLabel: '② くらべる量',
       textParts: [
         { t: '長さ' },
         { t: '60mの赤いテープ', role: 'base' },
@@ -322,7 +153,7 @@
         { t: '青いテープの長さ', role: 'compared' },
         { t: 'は何mですか。' },
       ],
-      hint: '「赤いテープの 0.65倍」なので、「赤いテープ（60m）」がもとにする量（左）だね！',
+      hint: '「赤いテープの 0.65倍」→「赤いテープ（60m）」がもとにする量（左）',
       baseLabel: '赤いテープ',
       baseVal: '60m',
       comparedLabel: '青いテープ',
@@ -339,7 +170,7 @@
     {
       id: 'p7',
       category: 'base',
-      levelLabel: 'レベル3・もとにする量を求める',
+      levelLabel: '③ もとにする量',
       textParts: [
         { t: '今日、図書室を利用した人は' },
         { t: 'きのうの1.5倍', role: 'ratio' },
@@ -349,7 +180,7 @@
         { t: 'きのう利用した人', role: 'base' },
         { t: 'は何人でしたか。' },
       ],
-      hint: '「きのうの 1.5倍」が今日（30人）！だから「きのう」が左の箱で、わからないので □人 になるよ。',
+      hint: '「きのうの 1.5倍」→「きのう（□人）」がもとにする量（左）',
       baseLabel: 'きのう',
       baseVal: '□人',
       comparedLabel: '今日',
@@ -366,7 +197,7 @@
     {
       id: 'p8',
       category: 'base',
-      levelLabel: 'レベル3・もとにする量を求める',
+      levelLabel: '③ もとにする量',
       textParts: [
         { t: 'あるリュックが、' },
         { t: 'もとのねだんの0.8倍', role: 'ratio' },
@@ -376,7 +207,7 @@
         { t: 'もとのねだん', role: 'base' },
         { t: 'は何円でしたか。' },
       ],
-      hint: '「もとのねだんの 0.8倍」が2400円！もとにする量「もとのねだん」が □円 だよ。',
+      hint: '「もとのねだんの 0.8倍」→「もとのねだん（□円）」が左の箱',
       baseLabel: 'もとのねだん',
       baseVal: '□円',
       comparedLabel: '今のねだん',
@@ -393,7 +224,7 @@
     {
       id: 'p9',
       category: 'base',
-      levelLabel: 'レベル3・もとにする量を求める',
+      levelLabel: '③ もとにする量',
       textParts: [
         { t: 'ゆうたさんの先週の貯金は、' },
         { t: '先々週の0.6倍', role: 'ratio' },
@@ -403,7 +234,7 @@
         { t: '先々週の貯金', role: 'base' },
         { t: 'は何円でしたか。' },
       ],
-      hint: '「先々週の 0.6倍」と書いてあるので、「先々週」がもとにする量（左・□円）だね！',
+      hint: '「先々週の 0.6倍」→「先々週（□円）」がもとにする量（左）',
       baseLabel: '先々週',
       baseVal: '□円',
       comparedLabel: '先週',
@@ -420,7 +251,7 @@
     {
       id: 'p10',
       category: 'tricky',
-      levelLabel: 'レベル4・言葉の順ひっかけ',
+      levelLabel: '④ ひっかけ',
       textParts: [
         { t: '折り紙を' },
         { t: 'あおいさんは27まい', role: 'compared' },
@@ -430,7 +261,7 @@
         { t: '兄が折った枚数', role: 'base' },
         { t: 'は何まいですか。' },
       ],
-      hint: '27まいが最初に出てくるけど、だまされないで！「兄が折った枚数の 1.5倍」と書いてあるから、もとにする量（左）は「兄」だよ！',
+      hint: '「兄が折った枚数の 1.5倍」→「兄（□まい）」がもとにする量（左）',
       baseLabel: '兄',
       baseVal: '□まい',
       comparedLabel: 'あおいさん',
@@ -447,7 +278,7 @@
     {
       id: 'p11',
       category: 'tricky',
-      levelLabel: 'レベル4・言葉の順ひっかけ',
+      levelLabel: '④ ひっかけ',
       textParts: [
         { t: '水そうAには' },
         { t: '18L', role: 'compared' },
@@ -457,7 +288,7 @@
         { t: '水そうBの水の量', role: 'base' },
         { t: 'は何Lですか。' },
       ],
-      hint: '「水そうBの 0.75倍」なので、「水そうB」がもとにする量（左・□L）、「水そうA」がくらべる量（右・18L）！',
+      hint: '「水そうBの 0.75倍」→「水そうB（□L）」がもとにする量（左）',
       baseLabel: '水そうB',
       baseVal: '□L',
       comparedLabel: '水そうA',
@@ -474,7 +305,7 @@
     {
       id: 'p12',
       category: 'tricky',
-      levelLabel: 'レベル4・言葉の順ひっかけ',
+      levelLabel: '④ ひっかけ',
       textParts: [
         { t: 'ミニトマトが' },
         { t: '赤組は45個', role: 'base' },
@@ -484,7 +315,7 @@
         { t: '赤組の何倍', role: 'ratio' },
         { t: 'ですか。' },
       ],
-      hint: '「赤組の 何倍」と聞かれているよ。「〜の」の前にある「赤組（45個）」が左の箱（もとにする量）だね！',
+      hint: '「赤組の 何倍」→「赤組（45個）」がもとにする量（左）',
       baseLabel: '赤組',
       baseVal: '45個',
       comparedLabel: '白組',
@@ -526,9 +357,6 @@
     return arr[Math.floor(Math.random() * arr.length)];
   }
 
-  /**
-   * ランダムな練習問題を生成（毎回違う数値・場面で無限練習）
-   */
   function generateRandomProblem() {
     const sc = pick(SCENARIOS);
     const nums = pick(CLEAN_PAIRS);
@@ -542,17 +370,17 @@
       return {
         id: 'gen-' + Date.now(),
         category: 'generated',
-        levelLabel: '🎲 自動生成・割合を求める',
+        levelLabel: '🎲 自動生成・割合',
         textParts: [
-          { t: `${sc.ctx}を調べたところ、` },
-          { t: `${sc.base}は${bFull}`, role: 'base' },
+          { t: `${sc.ctx}は、` },
+          { t: `${sc.base}が${bFull}`, role: 'base' },
           { t: `、` },
-          { t: `${sc.comp}は${cFull}`, role: 'compared' },
+          { t: `${sc.comp}が${cFull}`, role: 'compared' },
           { t: `でした。${sc.comp}は` },
           { t: `${sc.base}の何倍`, role: 'ratio' },
           { t: `ですか。` },
         ],
-        hint: `「${sc.base}の 何倍」だから、「${sc.base}（${bFull}）」が左の箱（もとにする量）だよ！`,
+        hint: `「${sc.base}の 何倍」→「${sc.base}（${bFull}）」がもとにする量（左）`,
         baseLabel: sc.base,
         baseVal: bFull,
         comparedLabel: sc.comp,
@@ -582,7 +410,7 @@
           { t: `${sc.base}の${rFull}`, role: 'ratio' },
           { t: `です。${sc.comp}はいくつですか。` },
         ],
-        hint: `「${sc.base}の ${rFull}」だから、「${sc.base}（${bFull}）」がもとにする量（左）になるよ！`,
+        hint: `「${sc.base}の ${rFull}」→「${sc.base}（${bFull}）」がもとにする量（左）`,
         baseLabel: sc.base,
         baseVal: bFull,
         comparedLabel: sc.comp,
@@ -598,7 +426,6 @@
       };
     }
 
-    // base
     return {
       id: 'gen-' + Date.now(),
       category: 'generated',
@@ -612,7 +439,7 @@
         { t: `${sc.base}`, role: 'base' },
         { t: `はいくつでしたか。` },
       ],
-      hint: `「${sc.base}の ${rFull}」と書いてあるね！だから「${sc.base}」がもとにする量（左・□${sc.unit}）だよ。`,
+      hint: `「${sc.base}の ${rFull}」→「${sc.base}（□${sc.unit}）」がもとにする量（左）`,
       baseLabel: sc.base,
       baseVal: `□${sc.unit}`,
       comparedLabel: sc.comp,
@@ -628,83 +455,8 @@
     };
   }
 
-  /**
-   * エディタで作成した図をそのまま練習問題に変換する
-   */
-  function createProblemFromEditorState(state) {
-    const item = state.primary;
-    const parse = global.KankeizuDiagram.parseNumeric;
-    const fmt = global.KankeizuDiagram.formatNum;
-
-    const bUnknown = item.baseUnknown || String(item.baseVal).trim() === '□';
-    const rUnknown = item.ratioUnknown || String(item.ratioVal).trim() === '□';
-    const cUnknown = item.comparedUnknown || String(item.comparedVal).trim() === '□';
-
-    const bNum = parse(item.baseVal);
-    const rNum = parse(item.ratioVal);
-    const cNum = parse(item.comparedVal);
-
-    let unknownTarget = 'ratio';
-    let answer = 0;
-    let validEqs = [];
-    let unit = '倍';
-    let baseNum = bNum;
-    let comparedNum = cNum;
-    let ratioNum = rNum;
-
-    if (rUnknown && Number.isFinite(bNum) && Number.isFinite(cNum) && bNum !== 0) {
-      unknownTarget = 'ratio';
-      answer = Number(fmt(cNum / bNum));
-      ratioNum = answer;
-      validEqs = [`${cNum}÷${bNum}`];
-      unit = '倍';
-    } else if (cUnknown && Number.isFinite(bNum) && Number.isFinite(rNum)) {
-      unknownTarget = 'compared';
-      answer = Number(fmt(bNum * rNum));
-      comparedNum = answer;
-      validEqs = [`${bNum}×${rNum}`, `${rNum}×${bNum}`];
-      unit = item.comparedUnit || '';
-    } else if (bUnknown && Number.isFinite(cNum) && Number.isFinite(rNum) && rNum !== 0) {
-      unknownTarget = 'base';
-      answer = Number(fmt(cNum / rNum));
-      baseNum = answer;
-      validEqs = [`${cNum}÷${rNum}`];
-      unit = item.baseUnit || '';
-    } else {
-      return null;
-    }
-
-    const baseValStr = bUnknown ? `□${item.baseUnit || ''}` : `${item.baseVal}${item.baseUnit || ''}`;
-    const compValStr = cUnknown ? `□${item.comparedUnit || ''}` : `${item.comparedVal}${item.comparedUnit || ''}`;
-    const ratioValStr = rUnknown ? '□倍' : `${item.ratioVal}倍`;
-
-    const fallbackText = `${item.baseLabel}（${baseValStr}）をもとにしたときの、${item.comparedLabel}（${compValStr}）の割合（${ratioValStr}）の関係図を組み立てて、答えを求めましょう。`;
-
-    return {
-      id: 'custom-' + Date.now(),
-      category: 'custom',
-      levelLabel: '✏️ エディタから作成した問題',
-      textParts: [{ t: (state.problemText || '').trim() || fallbackText }],
-      hint: `もとにする量（左の箱）は「${item.baseLabel}」、くらべる量（右の箱）は「${item.comparedLabel}」だよ！`,
-      baseLabel: item.baseLabel || 'もと',
-      baseVal: baseValStr,
-      comparedLabel: item.comparedLabel || 'くらべる',
-      comparedVal: compValStr,
-      ratioVal: ratioValStr,
-      unknownTarget,
-      baseNum,
-      comparedNum,
-      ratioNum,
-      unit,
-      validEqs,
-      answer,
-    };
-  }
-
   global.KankeizuProblems = {
-    PRESETS,
     PRACTICE_PROBLEMS,
     generateRandomProblem,
-    createProblemFromEditorState,
   };
 })(window);
