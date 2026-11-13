@@ -9,6 +9,14 @@
 *原本*
 *kyoukasho*
 
+# Clumsy Bird（MITライセンス）のゲーム用スプライト画像のみ許可
+!clumsy-bird-master/data/img/bg.png
+!clumsy-bird-master/data/img/clumsy.png
+!clumsy-bird-master/data/img/gameoverbg.png
+!clumsy-bird-master/data/img/ground.png
+!clumsy-bird-master/data/img/hit.png
+!clumsy-bird-master/data/img/pipe.png
+
 # OS / Editor
 .DS_Store
 Thumbs.db

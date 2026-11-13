@@ -1,0 +1,121 @@
+<!DOCTYPE HTML>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>クラムジーバード｜割合チャレンジ版</title>
+  <link rel="shortcut icon" href="data/img/favicon.ico" />
+  <link rel="stylesheet" type="text/css" media="screen" href="index.css" />
+  <meta id="viewport" name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  <meta name="apple-mobile-web-app-title" content="クラムジーバード" />
+</head>
+<body>
+  <div id="game-shell">
+    <!-- Canvas placeholder -->
+    <div id="screen"></div>
+
+    <!-- 20秒カウントダウンHUD -->
+    <div id="quiz-hud" class="quiz-hud hidden" aria-live="polite">
+      <span>次の割合クイズまで：</span>
+      <strong id="quiz-countdown">20</strong><span>秒</span>
+    </div>
+
+    <!-- 再開カウントダウン -->
+    <div id="resume-overlay" class="resume-overlay hidden">
+      <div class="resume-box">
+        <div class="resume-label">ゲーム再開！</div>
+        <div id="resume-num" class="resume-num">3</div>
+        <div class="resume-sub">スペース / クリックの準備をしよう</div>
+      </div>
+    </div>
+
+    <!-- 割合クイズモーダル -->
+    <div id="quiz-modal" class="quiz-modal hidden" role="dialog" aria-modal="true" aria-labelledby="qm-title">
+      <div class="quiz-card">
+        <div class="qm-top">
+          <span id="qm-title" class="qm-badge">割合チャレンジ！</span>
+          <span id="qm-status" class="qm-status">間違えずに解けたらゲームにもどれるよ</span>
+          <button type="button" id="qm-hint-btn" class="qm-mini-btn qm-hint-btn">💡 ヒント</button>
+        </div>
+
+        <div id="qm-question" class="qm-question"></div>
+        <div id="qm-hint-box" class="qm-hint-box hidden"></div>
+
+        <!-- Step 1: 関係図組み立て -->
+        <div class="qm-step">
+          <div class="qm-step-head">
+            <span class="qm-num">1</span>
+            <strong>関係図を組み立てよう</strong>
+            <button type="button" id="qm-swap-btn" class="qm-mini-btn">⇄ 左右いれかえ</button>
+            <button type="button" id="qm-reset-btn" class="qm-mini-btn">やりなおす</button>
+          </div>
+
+          <div class="qm-board">
+            <div class="qm-col">
+              <div class="qm-tag qm-tag-base">もとにする量</div>
+              <div class="qm-slot qm-slot-base" data-slot="baseLabel" tabindex="0">なまえ</div>
+              <div class="qm-slot qm-slot-val" data-slot="baseVal" tabindex="0">数量・□</div>
+            </div>
+            <div class="qm-arrow-col">
+              <div class="qm-tag qm-tag-ratio">割合</div>
+              <div class="qm-slot qm-slot-ratio" data-slot="ratioVal" tabindex="0">何倍・□倍</div>
+              <div class="qm-arrow-line">➔</div>
+            </div>
+            <div class="qm-col">
+              <div class="qm-tag qm-tag-compared">くらべる量</div>
+              <div class="qm-slot qm-slot-compared" data-slot="comparedLabel" tabindex="0">なまえ</div>
+              <div class="qm-slot qm-slot-val" data-slot="comparedVal" tabindex="0">数量・□</div>
+            </div>
+          </div>
+
+          <div id="qm-tray" class="qm-tray"></div>
+
+          <div class="qm-center">
+            <button type="button" id="qm-check-diag" class="qm-btn-primary">関係図をチェック</button>
+          </div>
+          <div id="qm-diag-fb" class="qm-fb hidden"></div>
+        </div>
+
+        <!-- Step 2: 式と答え -->
+        <div id="qm-step-2" class="qm-step qm-locked">
+          <div class="qm-step-head">
+            <span class="qm-num">2</span>
+            <strong>式と答えを入力しよう</strong>
+          </div>
+          <div id="qm-svg-preview" class="qm-svg-preview"></div>
+          <div class="qm-eq-box">
+            <div class="qm-eq-row">
+              <label for="qm-eq-in">式：</label>
+              <input type="text" id="qm-eq-in" placeholder="例: 12÷8" autocomplete="off" />
+              <div id="qm-eq-btns" class="qm-eq-btns"></div>
+            </div>
+            <div class="qm-eq-row">
+              <label for="qm-ans-in">答え：</label>
+              <input type="text" id="qm-ans-in" placeholder="数値" autocomplete="off" />
+              <span id="qm-ans-unit" class="qm-unit"></span>
+              <button type="button" id="qm-check-ans" class="qm-btn-accent">答え合わせ</button>
+            </div>
+          </div>
+          <div id="qm-ans-fb" class="qm-fb hidden"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- melonJS Library & Game Scripts -->
+  <script type="text/javascript" src="js/melonJS-min.js"></script>
+  <script type="text/javascript" src="js/game.js"></script>
+  <script type="text/javascript" src="js/entities/entities.js"></script>
+  <script type="text/javascript" src="js/entities/HUD.js"></script>
+  <script type="text/javascript" src="js/screens/title.js"></script>
+  <script type="text/javascript" src="js/screens/play.js"></script>
+  <script type="text/javascript" src="js/screens/gameover.js"></script>
+  <script type="text/javascript" src="js/quiz.js"></script>
+  <script type="text/javascript">
+    window.onReady(function onReady() {
+      game.onload();
+    });
+  </script>
+</body>
+</html>
