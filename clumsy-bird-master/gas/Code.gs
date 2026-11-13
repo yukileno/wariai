@@ -36,15 +36,19 @@ function readTop_(sheetName, limit) {
   if (lastRow < 2) return [];
 
   var values = sheet.getRange(2, 1, lastRow - 1, 5).getValues();
-  var items = values.map(function (row) {
-    return {
-      id: String(row[0] || ''),
-      name: String(row[1] || 'ななし'),
-      score: Number(row[2]) || 0,
-      quizSolved: Number(row[3]) || 0,
-      createdAt: row[4] instanceof Date ? row[4].toISOString() : String(row[4] || ''),
-    };
-  });
+  var items = values
+    .filter(function (row) {
+      return (Number(row[2]) || 0) >= 10;
+    })
+    .map(function (row) {
+      return {
+        id: String(row[0] || ''),
+        name: String(row[1] || 'ななし'),
+        score: Number(row[2]) || 0,
+        quizSolved: Number(row[3]) || 0,
+        createdAt: row[4] instanceof Date ? row[4].toISOString() : String(row[4] || ''),
+      };
+    });
 
   items.sort(function (a, b) {
     if (b.score !== a.score) return b.score - a.score;
@@ -80,6 +84,9 @@ function doPost(e) {
       : DEFAULT_SHEET_NAME;
     var name = String(data.name || '').trim().slice(0, 20) || 'ななし';
     var score = Math.max(0, Math.min(99999, Math.floor(Number(data.score) || 0)));
+    if (score < 10) {
+      return jsonOut_({ ok: false, error: '10点以上が必要です' });
+    }
     var quizSolved = Math.max(0, Math.min(9999, Math.floor(Number(data.quizSolved) || 0)));
     var id = String(data.id || ('r-' + Date.now()));
     var createdAt = new Date().toISOString();

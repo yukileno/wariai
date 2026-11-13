@@ -1,55 +1,35 @@
 /**
  * クラムジーバード ランキング機能
- * ・初期設定不要の localStorage ランキング（即利用可能）
- * ・無料の Google Apps Script (GAS) ＋ スプレッドシート連携（?gas=URL でも自動設定）
+ * ・Google Apps Script (GAS) ＋ スプレッドシート連携
+ * ・3分ごとのキャッシュ＆自動更新
+ * ・10点以上で登録可能
  */
 (function (global) {
   'use strict';
 
   const STORAGE_LOCAL_KEY = 'clumsy_wariai_ranking_v1';
   const STORAGE_NAME_KEY = 'clumsy_wariai_player_name_v1';
-  const STORAGE_GAS_KEY = 'clumsy_wariai_gas_url_v1';
+  const STORAGE_CACHE_KEY = 'clumsy_wariai_cache_v1';
   const DEFAULT_GAS_URL = 'https://script.google.com/macros/s/AKfycbzlCiikCRC-T_VeCT0bHPTkw0z5JwgbsFe-uqEu5D6HUi4Ho-PafnM0qpDooMlaSfjlLQ/exec';
   const BOARD_NAME = '割合ゲーム_ランキング';
   const MAX_ITEMS = 20;
+  const MIN_SCORE = 10;
+  const REFRESH_INTERVAL_MS = 3 * 60 * 1000;
 
   let currentScreen = 'none';
   let submittedThisRun = false;
   let lastSavedId = null;
+  let autoRefreshTimer = null;
 
   function el(id) {
     return document.getElementById(id);
-  }
-
-  function getGasUrl() {
-    try {
-      const params = new URLSearchParams(global.location.search);
-      const fromQuery = params.get('gas');
-      if (fromQuery && fromQuery.startsWith('https://script.google.com/')) {
-        localStorage.setItem(STORAGE_GAS_KEY, fromQuery);
-        return fromQuery;
-      }
-      const saved = localStorage.getItem(STORAGE_GAS_KEY);
-      if (saved === 'off') return '';
-      return saved || DEFAULT_GAS_URL;
-    } catch (_) {
-      return DEFAULT_GAS_URL;
-    }
-  }
-
-  function setGasUrl(url) {
-    try {
-      const trimmed = String(url || '').trim();
-      if (trimmed) localStorage.setItem(STORAGE_GAS_KEY, trimmed);
-      else localStorage.removeItem(STORAGE_GAS_KEY);
-    } catch (_) {}
   }
 
   function loadLocal() {
     try {
       const raw = localStorage.getItem(STORAGE_LOCAL_KEY);
       const arr = raw ? JSON.parse(raw) : [];
-      return Array.isArray(arr) ? arr : [];
+      return Array.isArray(arr) ? arr.filter((x) => (Number(x.score) || 0) >= MIN_SCORE) : [];
     } catch (_) {
       return [];
     }
@@ -61,12 +41,42 @@
     } catch (_) {}
   }
 
+  function loadCache() {
+    try {
+      const raw = localStorage.getItem(STORAGE_CACHE_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      if (!parsed || !Array.isArray(parsed.items)) return null;
+      return {
+        items: parsed.items.filter((x) => (Number(x.score) || 0) >= MIN_SCORE),
+        lastFetchedAt: Number(parsed.lastFetchedAt) || 0,
+      };
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function saveCache(items, fetchedAt) {
+    try {
+      localStorage.setItem(
+        STORAGE_CACHE_KEY,
+        JSON.stringify({
+          items: items.slice(0, MAX_ITEMS),
+          lastFetchedAt: Number(fetchedAt) || Date.now(),
+        })
+      );
+    } catch (_) {}
+  }
+
   function sortItems(items) {
-    return items.slice().sort((a, b) => {
-      if ((b.score || 0) !== (a.score || 0)) return (b.score || 0) - (a.score || 0);
-      if ((b.quizSolved || 0) !== (a.quizSolved || 0)) return (b.quizSolved || 0) - (a.quizSolved || 0);
-      return String(a.createdAt || '') < String(b.createdAt || '') ? -1 : 1;
-    });
+    return items
+      .filter((x) => (Number(x.score) || 0) >= MIN_SCORE)
+      .slice()
+      .sort((a, b) => {
+        if ((b.score || 0) !== (a.score || 0)) return (b.score || 0) - (a.score || 0);
+        if ((b.quizSolved || 0) !== (a.quizSolved || 0)) return (b.quizSolved || 0) - (a.quizSolved || 0);
+        return String(a.createdAt || '') < String(b.createdAt || '') ? -1 : 1;
+      });
   }
 
   function formatDate(iso) {
@@ -80,25 +90,45 @@
     return `${m}/${day} ${hh}:${mm}`;
   }
 
-  async function fetchRanking() {
-    const gasUrl = getGasUrl();
-    if (!gasUrl) {
-      return { mode: 'local', items: sortItems(loadLocal()).slice(0, MAX_ITEMS) };
+  async function fetchRanking(force) {
+    const cache = loadCache();
+    const now = Date.now();
+    const cacheExpired = !cache || cache.items.length === 0 || (now - cache.lastFetchedAt >= REFRESH_INTERVAL_MS);
+
+    if (!force && !cacheExpired) {
+      return {
+        mode: 'gas',
+        items: sortItems(cache.items).slice(0, MAX_ITEMS),
+        lastFetchedAt: cache.lastFetchedAt,
+      };
     }
+
     try {
-      const sep = gasUrl.includes('?') ? '&' : '?';
-      const res = await fetch(`${gasUrl}${sep}board=${encodeURIComponent(BOARD_NAME)}&t=${Date.now()}`);
+      const sep = DEFAULT_GAS_URL.includes('?') ? '&' : '?';
+      const res = await fetch(`${DEFAULT_GAS_URL}${sep}board=${encodeURIComponent(BOARD_NAME)}&t=${now}`);
       const data = await res.json();
       if (data && data.ok && Array.isArray(data.items)) {
-        return { mode: 'gas', items: sortItems(data.items).slice(0, MAX_ITEMS) };
+        const sorted = sortItems(data.items).slice(0, MAX_ITEMS);
+        saveCache(sorted, now);
+        return { mode: 'gas', items: sorted, lastFetchedAt: now };
       }
       throw new Error('Invalid GAS response');
     } catch (_) {
-      return { mode: 'local-fallback', items: sortItems(loadLocal()).slice(0, MAX_ITEMS) };
+      const fallbackItems = cache && cache.items.length ? cache.items : loadLocal();
+      return {
+        mode: 'local-fallback',
+        items: sortItems(fallbackItems).slice(0, MAX_ITEMS),
+        lastFetchedAt: cache ? cache.lastFetchedAt : 0,
+      };
     }
   }
 
   async function submitScore(name, score, quizSolved) {
+    const numericScore = Math.max(0, Math.floor(Number(score) || 0));
+    if (numericScore < MIN_SCORE) {
+      return { mode: 'rejected', items: [] };
+    }
+
     const cleanName = String(name || '').trim().slice(0, 16) || 'ななし';
     try {
       localStorage.setItem(STORAGE_NAME_KEY, cleanName);
@@ -107,7 +137,7 @@
     const entry = {
       id: 'r-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6),
       name: cleanName,
-      score: Math.max(0, Math.floor(Number(score) || 0)),
+      score: numericScore,
       quizSolved: Math.max(0, Math.floor(Number(quizSolved) || 0)),
       createdAt: new Date().toISOString(),
     };
@@ -117,28 +147,26 @@
     const localList = sortItems([...loadLocal(), entry]).slice(0, 50);
     saveLocal(localList);
 
-    const gasUrl = getGasUrl();
-    if (gasUrl) {
-      try {
-        const res = await fetch(gasUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({
-            board: BOARD_NAME,
-            id: entry.id,
-            name: entry.name,
-            score: entry.score,
-            quizSolved: entry.quizSolved,
-          }),
-        });
-        const data = await res.json();
-        if (data && data.ok && Array.isArray(data.items)) {
-          const sorted = sortItems(data.items).slice(0, MAX_ITEMS);
-          const idx = sorted.findIndex((x) => x.id === entry.id);
-          return { mode: 'gas', rank: idx >= 0 ? idx + 1 : null, items: sorted };
-        }
-      } catch (_) {}
-    }
+    try {
+      const res = await fetch(DEFAULT_GAS_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({
+          board: BOARD_NAME,
+          id: entry.id,
+          name: entry.name,
+          score: entry.score,
+          quizSolved: entry.quizSolved,
+        }),
+      });
+      const data = await res.json();
+      if (data && data.ok && Array.isArray(data.items)) {
+        const sorted = sortItems(data.items).slice(0, MAX_ITEMS);
+        saveCache(sorted, Date.now());
+        const idx = sorted.findIndex((x) => x.id === entry.id);
+        return { mode: 'gas', rank: idx >= 0 ? idx + 1 : null, items: sorted };
+      }
+    } catch (_) {}
 
     const top = localList.slice(0, MAX_ITEMS);
     const idx = top.findIndex((x) => x.id === entry.id);
@@ -155,24 +183,25 @@
   function renderTable(result) {
     const badge = el('rk-mode-badge');
     const tbody = el('rk-tbody');
-    const resetBtn = el('rk-reset-local');
+    const note = el('rk-update-note');
 
     if (result.mode === 'gas') {
       badge.textContent = '共有ランキング (Googleスプレッドシート)';
       badge.className = 'rk-mode-badge gas';
-      resetBtn.classList.add('hidden');
-    } else if (result.mode === 'local-fallback') {
+    } else {
       badge.textContent = '端末内の記録（スプレッドシート接続待ち）';
       badge.className = 'rk-mode-badge';
-      resetBtn.classList.remove('hidden');
-    } else {
-      badge.textContent = 'この端末のランキング';
-      badge.className = 'rk-mode-badge';
-      resetBtn.classList.remove('hidden');
+    }
+
+    if (note) {
+      const timeStr = result.lastFetchedAt
+        ? `（最終取得: ${formatDate(new Date(result.lastFetchedAt).toISOString())}）`
+        : '';
+      note.textContent = `※ランキングは3分ごとに自動更新されます${timeStr}`;
     }
 
     if (!result.items.length) {
-      tbody.innerHTML = '<tr><td colspan="5" class="rk-empty">まだきろくがありません。ゲームをあそんで登録しよう！</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="5" class="rk-empty">まだきろくがありません（10てん以上で登録できます）。</td></tr>';
       return;
     }
 
@@ -210,16 +239,37 @@
     }
   }
 
+  function startAutoRefreshTimer() {
+    stopAutoRefreshTimer();
+    autoRefreshTimer = setInterval(async () => {
+      if (el('ranking-modal').classList.contains('hidden')) return;
+      const cache = loadCache();
+      const last = cache ? cache.lastFetchedAt : 0;
+      if (Date.now() - last >= REFRESH_INTERVAL_MS) {
+        const result = await fetchRanking(true);
+        renderTable(result);
+      }
+    }, 15000);
+  }
+
+  function stopAutoRefreshTimer() {
+    if (autoRefreshTimer) {
+      clearInterval(autoRefreshTimer);
+      autoRefreshTimer = null;
+    }
+  }
+
   async function openModal() {
     syncGameInputLock(true);
     el('ranking-modal').classList.remove('hidden');
-    el('rk-gas-in').value = getGasUrl();
     el('rk-tbody').innerHTML = '<tr><td colspan="5" class="rk-empty">よみこみ中...</td></tr>';
-    const result = await fetchRanking();
+    const result = await fetchRanking(false);
     renderTable(result);
+    startAutoRefreshTimer();
   }
 
   function closeModal() {
+    stopAutoRefreshTimer();
     el('ranking-modal').classList.add('hidden');
     syncGameInputLock(false);
   }
@@ -238,12 +288,26 @@
       const steps = (typeof game !== 'undefined' && game.data) ? (game.data.steps || 0) : 0;
       const qSolved = (typeof game !== 'undefined' && game.data) ? (game.data.quizSolved || 0) : 0;
       el('go-score-summary').textContent = `${steps} てん（クイズ ${qSolved}問）`;
-      try {
-        el('go-name-in').value = localStorage.getItem(STORAGE_NAME_KEY) || '';
-      } catch (_) {}
-      el('go-submit-btn').disabled = false;
-      el('go-submit-btn').textContent = '🏆 ランキングに登録';
-      el('go-submit-msg').classList.add('hidden');
+
+      const nameInput = el('go-name-in');
+      const submitBtn = el('go-submit-btn');
+      const msg = el('go-submit-msg');
+
+      if (steps < MIN_SCORE) {
+        nameInput.classList.add('hidden');
+        submitBtn.classList.add('hidden');
+        msg.textContent = `※ ${MIN_SCORE}てん以上でランキングに登録できます（あと ${MIN_SCORE - steps} てん！）`;
+        msg.classList.remove('hidden');
+      } else {
+        nameInput.classList.remove('hidden');
+        submitBtn.classList.remove('hidden');
+        try {
+          nameInput.value = localStorage.getItem(STORAGE_NAME_KEY) || '';
+        } catch (_) {}
+        submitBtn.disabled = false;
+        submitBtn.textContent = '🏆 ランキングに登録';
+        msg.classList.add('hidden');
+      }
       goBar.classList.remove('hidden');
     } else {
       rankBtn.classList.add('hidden');
@@ -276,28 +340,6 @@
       if (e.target === modal) closeModal();
     });
 
-    el('rk-refresh-btn').addEventListener('click', async () => {
-      el('rk-tbody').innerHTML = '<tr><td colspan="5" class="rk-empty">よみこみ中...</td></tr>';
-      renderTable(await fetchRanking());
-    });
-
-    el('rk-toggle-gas').addEventListener('click', () => {
-      el('rk-gas-panel').classList.toggle('hidden');
-    });
-
-    el('rk-save-gas').addEventListener('click', async () => {
-      setGasUrl(el('rk-gas-in').value);
-      el('rk-gas-panel').classList.add('hidden');
-      renderTable(await fetchRanking());
-    });
-
-    el('rk-reset-local').addEventListener('click', async () => {
-      if (!confirm('この端末に保存されたランキング記録をすべて消去しますか？')) return;
-      saveLocal([]);
-      lastSavedId = null;
-      renderTable(await fetchRanking());
-    });
-
     const nameInput = el('go-name-in');
     nameInput.addEventListener('focus', () => {
       if (typeof game !== 'undefined' && game.data) game.data.uiBlocking = true;
@@ -314,13 +356,20 @@
 
     el('go-submit-btn').addEventListener('click', async () => {
       if (submittedThisRun) return;
+      const steps = (typeof game !== 'undefined' && game.data) ? (game.data.steps || 0) : 0;
+      const qSolved = (typeof game !== 'undefined' && game.data) ? (game.data.quizSolved || 0) : 0;
+      if (steps < MIN_SCORE) return;
+
       const btn = el('go-submit-btn');
       btn.disabled = true;
       btn.textContent = '登録中...';
 
-      const steps = (typeof game !== 'undefined' && game.data) ? (game.data.steps || 0) : 0;
-      const qSolved = (typeof game !== 'undefined' && game.data) ? (game.data.quizSolved || 0) : 0;
       const res = await submitScore(nameInput.value, steps, qSolved);
+      if (res.mode === 'rejected') {
+        btn.disabled = false;
+        btn.textContent = '🏆 ランキングに登録';
+        return;
+      }
 
       submittedThisRun = true;
       btn.textContent = '✓ 登録ずみ';
