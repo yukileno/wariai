@@ -21,6 +21,58 @@
       <strong id="quiz-countdown">20</strong><span>秒</span>
     </div>
 
+    <!-- ランキング開くボタン（タイトル・ゲームオーバー画面） -->
+    <button type="button" id="btn-open-ranking" class="btn-open-ranking hidden">🏆 ランキング</button>
+
+    <!-- ゲームオーバー時のランキング登録バー -->
+    <div id="gameover-submit-bar" class="gameover-submit-bar hidden">
+      <span id="go-score-summary" class="go-score-summary">0 てん</span>
+      <input type="text" id="go-name-in" placeholder="なまえ（例：たろう）" maxlength="16" autocomplete="off" />
+      <button type="button" id="go-submit-btn" class="qm-btn-primary">🏆 ランキングに登録</button>
+      <button type="button" id="go-to-title-btn" class="qm-mini-btn">タイトルへ</button>
+      <span id="go-submit-msg" class="go-submit-msg hidden"></span>
+    </div>
+
+    <!-- ランキングモーダル -->
+    <div id="ranking-modal" class="ranking-modal hidden" role="dialog" aria-modal="true" aria-labelledby="rk-title">
+      <div class="ranking-card">
+        <div class="rk-head">
+          <h2 id="rk-title">🏆 ランキング（上位20名）</h2>
+          <span id="rk-mode-badge" class="rk-mode-badge">よみこみ中...</span>
+          <button type="button" id="rk-close-btn" class="rk-close-btn" aria-label="とじる">✕</button>
+        </div>
+
+        <div class="rk-table-wrap">
+          <table class="rk-table">
+            <thead>
+              <tr>
+                <th>順位</th>
+                <th>なまえ</th>
+                <th>スコア</th>
+                <th>クイズ</th>
+                <th>日時</th>
+              </tr>
+            </thead>
+            <tbody id="rk-tbody"></tbody>
+          </table>
+        </div>
+
+        <div class="rk-foot">
+          <button type="button" id="rk-refresh-btn" class="qm-mini-btn">🔄 更新</button>
+          <button type="button" id="rk-toggle-gas" class="qm-mini-btn">⚙️ スプレッドシート設定</button>
+          <button type="button" id="rk-reset-local" class="qm-mini-btn hidden">🗑️ 端末記録を消去</button>
+        </div>
+
+        <div id="rk-gas-panel" class="rk-gas-panel hidden">
+          <label for="rk-gas-in">GAS ウェブアプリURL（空欄＝この端末のみ / URL設定＝クラス共有）:</label>
+          <div class="rk-gas-row">
+            <input type="text" id="rk-gas-in" placeholder="https://script.google.com/macros/s/.../exec" />
+            <button type="button" id="rk-save-gas" class="qm-btn-accent">保存</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- 再開カウントダウン -->
     <div id="resume-overlay" class="resume-overlay hidden">
       <div class="resume-box">
@@ -111,6 +163,7 @@
   <script type="text/javascript" src="js/screens/title.js"></script>
   <script type="text/javascript" src="js/screens/play.js"></script>
   <script type="text/javascript" src="js/screens/gameover.js"></script>
+  <script type="text/javascript" src="js/ranking.js"></script>
   <script type="text/javascript" src="js/quiz.js"></script>
   <script type="text/javascript">
     window.onReady(function onReady() {

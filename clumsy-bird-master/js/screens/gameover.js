@@ -7,7 +7,9 @@ game.GameOverScreen = me.ScreenObject.extend({
     onResetEvent: function() {
         game.data.quizPaused = false;
         game.data.resuming = false;
+        game.data.uiBlocking = false;
         if (window.BirdQuiz) window.BirdQuiz.stopSession();
+        if (window.BirdRanking) window.BirdRanking.setScreen('gameover');
 
         this.savedData = {
             score: game.data.score,
@@ -25,7 +27,7 @@ game.GameOverScreen = me.ScreenObject.extend({
         me.input.bindPointer(me.input.pointer.LEFT, me.input.KEY.ENTER);
 
         this.handler = me.event.subscribe(me.event.KEYDOWN, function(action) {
-            if (action === "enter") {
+            if (action === "enter" && !game.data.uiBlocking) {
                 me.state.change(me.state.MENU);
             }
         });
@@ -61,7 +63,7 @@ game.GameOverScreen = me.ScreenObject.extend({
                 this.subFont = new me.Font(JP_FONT, 18, '#334155', 'center');
                 this.subFont.bold();
 
-                this.steps = 'きろく： ' + game.data.steps + ' てん';
+                this.steps = 'きろく： ' + game.data.steps + ' てん（クイズ ' + (game.data.quizSolved || 0) + '問）';
                 this.topSteps = 'さいこうきろく： ' + me.save.topSteps + ' てん';
             },
 
@@ -85,6 +87,7 @@ game.GameOverScreen = me.ScreenObject.extend({
     },
 
     onDestroyEvent: function() {
+        if (window.BirdRanking) window.BirdRanking.setScreen('none');
         me.event.unsubscribe(this.handler);
         me.input.unbindKey(me.input.KEY.ENTER);
         me.input.unbindKey(me.input.KEY.SPACE);

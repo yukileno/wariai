@@ -2,11 +2,13 @@ var game = {
     data: {
         score: 0,
         steps: 0,
+        quizSolved: 0,
         start: false,
         newHiScore: false,
         muted: false,
         quizPaused: false,
-        resuming: false
+        resuming: false,
+        uiBlocking: false
     },
 
     resources: [

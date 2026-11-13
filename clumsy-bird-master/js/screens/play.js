@@ -16,10 +16,13 @@ game.PlayScreen = me.ScreenObject.extend({
         me.input.bindKey(me.input.KEY.SPACE, "fly", true);
         game.data.score = 0;
         game.data.steps = 0;
+        game.data.quizSolved = 0;
         game.data.start = false;
         game.data.newHiscore = false;
         game.data.quizPaused = false;
         game.data.resuming = false;
+        game.data.uiBlocking = false;
+        if (window.BirdRanking) window.BirdRanking.setScreen('play');
         if (window.BirdQuiz) window.BirdQuiz.showHud();
 
         me.game.world.addChild(new BackgroundLayer('bg', 1));

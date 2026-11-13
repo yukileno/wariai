@@ -11,7 +11,9 @@ game.TitleScreen = me.ScreenObject.extend({
         game.data.newHiScore = false;
         game.data.quizPaused = false;
         game.data.resuming = false;
+        game.data.uiBlocking = false;
         if (window.BirdQuiz) window.BirdQuiz.stopSession();
+        if (window.BirdRanking) window.BirdRanking.setScreen('title');
 
         me.game.world.addChild(new BackgroundLayer('bg', 1));
         me.input.bindKey(me.input.KEY.ENTER, "enter", true);
@@ -19,7 +21,7 @@ game.TitleScreen = me.ScreenObject.extend({
         me.input.bindPointer(me.input.pointer.LEFT, me.input.KEY.ENTER);
 
         this.handler = me.event.subscribe(me.event.KEYDOWN, function(action) {
-            if (action === "enter") {
+            if (action === "enter" && !game.data.uiBlocking) {
                 me.state.change(me.state.PLAY);
             }
         });
@@ -78,6 +80,7 @@ game.TitleScreen = me.ScreenObject.extend({
     },
 
     onDestroyEvent: function() {
+        if (window.BirdRanking) window.BirdRanking.setScreen('none');
         me.event.unsubscribe(this.handler);
         me.input.unbindKey(me.input.KEY.ENTER);
         me.input.unbindKey(me.input.KEY.SPACE);

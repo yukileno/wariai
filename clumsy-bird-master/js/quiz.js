@@ -596,6 +596,9 @@
 
     if (eqOk && ansOk) {
       state.step2Done = true;
+      if (typeof game !== 'undefined' && game.data) {
+        game.data.quizSolved = (game.data.quizSolved || 0) + 1;
+      }
       if (!state.hadMistake) {
         showFb('qm-ans-fb', 'ok', `⭕ ノーミス正解！（${p.validEqs[0]} ＝ ${p.answer}${p.unit}）ゲームにもどります！`);
         setTimeout(() => {
